@@ -12,42 +12,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ① リポジトリをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ② GHCR にログイン（認証必須）
-      - name: Log in to GHCR
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: tkp-math                   # GitHub ユーザー名
-          password: ${{ secrets.GHCR_PAT }}    # read:packages 権限付き PAT
+      # ① rclone 用に secrets.RCLONE_CONFIG を設定済みとする
+      - name: Setup rclone config
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
 
-      # ③ GHCR login 確認（オプション）
-      - name: Verify GHCR login
-        run: docker pull ghcr.io/tkp-math/texlive-ja:latest
-
-      # ④ プライベート Docker イメージ上で Python スクリプトを実行
-      - name: Run LaTeX compile container
+      # ② Docker コンテナ内で Cloud LaTeX 環境を使用
+      - name: Run LaTeX compilation container
         uses: addnab/docker-run-action@v3
         with:
-          image: ghcr.io/tkp-math/texlive-ja:latest
+          image: ghcr.io/tkp-math/texlive-ja-cloud:latest
           options: --rm
           run: |
-            # rclone 設定
-            mkdir -p ~/.config/rclone
-            echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+            # 作業ディレクトリ
+            mkdir -p ./latex_projects
 
-            # Google Drive からフォルダを同期
+            # ③ Google Drive からフォルダを同期
             rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
 
-            # Python 環境整備
+            # ④ Python 環境整備
             python -m pip install --upgrade pip
             pip install tqdm
 
-            # 再帰的に .tex ファイルをコンパイル
+            # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
             python scripts/compile_all_tex.py ./latex_projects
 
-            # PDF を Google Drive にアップロード
+            # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
+
+          shell: sh
