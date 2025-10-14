@@ -16,34 +16,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ② GHCR にログイン（プライベートイメージ対応）
-      - name: Log in to GHCR
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: tkp-math           # GitHub ユーザー名
-          password: ${{ secrets.GHCR_PAT }}
-
-      # ③ コンテナ内で Python スクリプトを実行
+      # ② プライベート GHCR イメージ上で Python スクリプト実行
       - name: Run LaTeX compile container
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
+          username: tkp-math
+          password: ${{ secrets.GHCR_PAT }}
           options: --rm
           run: |
-            # ④ rclone 設定
+            # rclone 設定
             mkdir -p ~/.config/rclone
             echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
 
-            # ⑤ Google Drive からフォルダを同期
+            # Google Drive からフォルダを同期
             rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
 
-            # ⑥ Python の依存ライブラリをインストール
+            # Python 環境整備
             python -m pip install --upgrade pip
             pip install tqdm
 
-            # ⑦ 再帰的に .tex ファイルをコンパイル
+            # 再帰的に .tex ファイルをコンパイル
             python scripts/compile_all_tex.py ./latex_projects
 
-            # ⑧ 完成した PDF を Drive にアップロード
+            # PDF を Google Drive にアップロード
             rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
