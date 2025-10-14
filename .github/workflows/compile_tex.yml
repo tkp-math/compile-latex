@@ -35,7 +35,7 @@ jobs:
             cd /workspace/latex_projects
 
             # ③ Google Drive からフォルダを同期
-            rclone sync --config /github/workspace/.config/rclone/rclone.conf \
+            rclone sync --config /root/.config/rclone/rclone.conf \
               "gdrive:${{ github.event.inputs.folderId }}" .
 
             # ④ Python 環境整備
