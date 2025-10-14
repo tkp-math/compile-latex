@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ② GHCR にログインしてプライベートイメージを pull 可能にする
+      # ② GHCR にログイン（認証必須）
       - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
@@ -24,7 +24,11 @@ jobs:
           username: tkp-math                   # GitHub ユーザー名
           password: ${{ secrets.GHCR_PAT }}    # read:packages 権限付き PAT
 
-      # ③ プライベート Docker イメージ上で Python スクリプトを実行
+      # ③ GHCR login 確認（オプション）
+      - name: Verify GHCR login
+        run: docker pull ghcr.io/tkp-math/texlive-ja:latest
+
+      # ④ プライベート Docker イメージ上で Python スクリプトを実行
       - name: Run LaTeX compile container
         uses: addnab/docker-run-action@v3
         with:
