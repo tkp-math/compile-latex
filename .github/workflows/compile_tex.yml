@@ -19,7 +19,7 @@ jobs:
       - name: Setup rclone config
         run: |
           mkdir -p $GITHUB_WORKSPACE/.config/rclone
-          echo "${{ secrets.RCLONE_CONFIG }}" > $GITHUB_WORKSPACE/.config/rclone/rclone.conf
+          echo "${{ secrets.RCLONE_CONFIG }}" | base64 -d > $GITHUB_WORKSPACE/.config/rclone/rclone.conf
 
       # ② Docker コンテナ内で LaTeX コンパイル
       - name: Run LaTeX compilation container
