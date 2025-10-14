@@ -26,7 +26,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm -v ~/.config/rclone:/root/.config/rclone
+          options: --rm -v $HOME/.config/rclone:/root/.config/rclone
           run: |
             # rclone インストール（もしイメージに入っていない場合）
             if ! command -v rclone > /dev/null; then
