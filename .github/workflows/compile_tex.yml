@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/YOUR_USERNAME/texlive-ja:latest  # 作成した Docker イメージを使用
+      image: ghcr.io/tkp-math/texlive-ja:latest  # 作成した Docker イメージを使用
 
     steps:
       - name: Checkout repository
@@ -26,17 +26,15 @@ jobs:
         run: |
           rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
 
-      - name: Compile .tex files recursively
+      - name: Install Python dependencies
         run: |
-          find ./latex_projects -name "*.tex" | while read texfile; do
-            dir=$(dirname "$texfile")
-            cd "$dir"
-            # 差分コンパイル可能
-            latexmk -pdf -interaction=nonstopmode -halt-on-error "$texfile" || true
-            cd -
-          done
+          python -m pip install --upgrade pip
+          pip install tqdm
+
+      - name: Compile .tex files with Python script
+        run: |
+          python scripts/compile_all_tex.py ./latex_projects
 
       - name: Upload PDFs back to Google Drive
         run: |
           rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
-
