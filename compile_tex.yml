@@ -1,0 +1,47 @@
+name: Compile LaTeX from Google Drive
+
+on:
+  workflow_dispatch:
+    inputs:
+      folderId:
+        description: 'Drive folder ID'
+        required: true
+      texFiles:
+        description: 'JSON list of tex files'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install TeX Live
+        run: sudo apt-get update && sudo apt-get install -y \
+          texlive-lang-cjk texlive-latex-extra dvipng latexmk \
+          fonts-ipafont-gothic fonts-ipafont-mincho
+
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Setup rclone config
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+
+      - name: Sync Google Drive folder
+        run: |
+          rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
+
+      - name: Compile all .tex files recursively
+        run: |
+          find ./latex_projects -name "*.tex" | while read texfile; do
+            dir=$(dirname "$texfile")
+            cd "$dir"
+            latexmk -pdf -interaction=nonstopmode -halt-on-error "$texfile" || true
+            cd -
+          done
+
+      - name: Upload PDFs back to Google Drive
+        run: |
+          rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
