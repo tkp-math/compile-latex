@@ -39,7 +39,7 @@ jobs:
             pip install tqdm
 
             # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
-            python scripts/compile_all_tex.py ./latex_projects
+            python /github/workspace/scripts/compile_all_tex.py ./latex_projects
 
             # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"

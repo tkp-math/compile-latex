@@ -31,6 +31,9 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 # pip コマンドを pip3 にリンク
 RUN update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 
+# rclone インストール
+RUN apt-get update && apt-get install -y rclone
+
 # 作業ディレクトリ
 WORKDIR /workspace
 
