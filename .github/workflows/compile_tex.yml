@@ -26,22 +26,27 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm
+          options: --rm -v ~/.config/rclone:/root/.config/rclone
           run: |
+            # rclone インストール（もしイメージに入っていない場合）
+            if ! command -v rclone > /dev/null; then
+              curl https://rclone.org/install.sh | bash
+            fi
+
             # 作業ディレクトリ
             mkdir -p ./latex_projects
 
-            # ③ Google Drive からフォルダを同期
+            # Google Drive からフォルダを同期
             rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
 
-            # ④ Python 環境整備
-            python -m pip install --upgrade pip
-            pip install tqdm
+            # Python 環境整備
+            python3 -m pip install --upgrade pip
+            python3 -m pip install tqdm
 
-            # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
-            python /github/workspace/scripts/compile_all_tex.py ./latex_projects
+            # 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
+            python3 /github/workspace/scripts/compile_all_tex.py ./latex_projects
 
-            # ⑥ 完成した PDF を Google Drive にアップロード
+            # 完成した PDF を Google Drive にアップロード
             rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
 
           shell: sh
