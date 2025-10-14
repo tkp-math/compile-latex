@@ -12,17 +12,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ① リポジトリを取得
+      # ① リポジトリをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ② プライベート GHCR イメージ上で Python スクリプト実行
+      # ② GHCR にログインしてプライベートイメージを pull 可能にする
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: tkp-math                   # GitHub ユーザー名
+          password: ${{ secrets.GHCR_PAT }}    # read:packages 権限付き PAT
+
+      # ③ プライベート Docker イメージ上で Python スクリプトを実行
       - name: Run LaTeX compile container
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          username: tkp-math
-          password: ${{ secrets.GHCR_PAT }}
           options: --rm
           run: |
             # rclone 設定
