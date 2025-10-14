@@ -15,38 +15,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ① rclone 用に secrets.RCLONE_CONFIG を設定済みとする
+      # ① rclone 用に secrets.RCLONE_CONFIG を設定
       - name: Setup rclone config
         run: |
           mkdir -p ~/.config/rclone
           echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
 
-      # ② Docker コンテナ内で Cloud LaTeX 環境を使用
+      # ② Docker コンテナ内で LaTeX コンパイル
       - name: Run LaTeX compilation container
         uses: addnab/docker-run-action@v3
         with:
-          image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm -v $HOME/.config/rclone:/root/.config/rclone
+          image: ghcr.io/<あなたのユーザー名>/texlive-ja-rclone:latest
+          options: --rm
           run: |
-            # rclone インストール（もしイメージに入っていない場合）
-            if ! command -v rclone > /dev/null; then
-              curl https://rclone.org/install.sh | bash
-            fi
+            set -e  # エラーで停止
 
             # 作業ディレクトリ
-            mkdir -p ./latex_projects
+            mkdir -p /workspace/latex_projects
+            cd /workspace/latex_projects
 
-            # Google Drive からフォルダを同期
-            rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
+            # ③ Google Drive からフォルダを同期
+            rclone sync "gdrive:${{ github.event.inputs.folderId }}" .
 
-            # Python 環境整備
+            # ④ Python 環境整備
             python3 -m pip install --upgrade pip
-            python3 -m pip install tqdm
+            pip3 install tqdm
 
-            # 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
-            python3 /github/workspace/scripts/compile_all_tex.py ./latex_projects
+            # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
+            python3 /github/workspace/scripts/compile_all_tex.py .
 
-            # 完成した PDF を Google Drive にアップロード
-            rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
-
+            # ⑥ 完成した PDF を Google Drive にアップロード
+            rclone sync . "gdrive:${{ github.event.inputs.folderId }}"
           shell: sh
