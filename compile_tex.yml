@@ -4,25 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       folderId:
-        description: 'Drive folder ID'
+        description: 'Google Drive folder ID'
         required: true
-      texFiles:
-        description: 'JSON list of tex files'
-        required: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/YOUR_USERNAME/texlive-ja:latest  # 作成した Docker イメージを使用
 
     steps:
-      - name: Install TeX Live
-        run: sudo apt-get update && sudo apt-get install -y \
-          texlive-lang-cjk texlive-latex-extra dvipng latexmk \
-          fonts-ipafont-gothic fonts-ipafont-mincho
-
-      - name: Install rclone
-        run: |
-          curl https://rclone.org/install.sh | sudo bash
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup rclone config
         run: |
@@ -33,11 +26,12 @@ jobs:
         run: |
           rclone sync "gdrive:${{ github.event.inputs.folderId }}" ./latex_projects
 
-      - name: Compile all .tex files recursively
+      - name: Compile .tex files recursively
         run: |
           find ./latex_projects -name "*.tex" | while read texfile; do
             dir=$(dirname "$texfile")
             cd "$dir"
+            # 差分コンパイル可能
             latexmk -pdf -interaction=nonstopmode -halt-on-error "$texfile" || true
             cd -
           done
@@ -45,3 +39,4 @@ jobs:
       - name: Upload PDFs back to Google Drive
         run: |
           rclone sync ./latex_projects "gdrive:${{ github.event.inputs.folderId }}"
+
