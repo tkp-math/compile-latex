@@ -26,7 +26,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm
+          options: --rm -v ${{ github.workspace }}/.config/rclone:/root/.config/rclone
           run: |
             set -e  # エラーで停止
 
@@ -46,5 +46,6 @@ jobs:
             python3 /github/workspace/scripts/compile_all_tex.py .
 
             # ⑥ 完成した PDF を Google Drive にアップロード
-            rclone sync . "gdrive:${{ github.event.inputs.folderId }}"
+            rclone sync --config /root/.config/rclone/rclone.conf . \
+              "gdrive:${{ github.event.inputs.folderId }}"
           shell: sh
