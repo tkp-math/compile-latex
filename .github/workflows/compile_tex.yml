@@ -15,6 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 作業ディレクトリの確認
+      - name: List workspace
+        run: ls -R /github/workspace
+
       # ① rclone 用に secrets.RCLONE_CONFIG を設定
       - name: Setup rclone config
         run: |
@@ -43,7 +47,7 @@ jobs:
             pip3 install tqdm
 
             # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
-            python3 /github/workspace/compile-latex/scripts/compile_all_tex.py .
+            python3 /github/workspace/scripts/compile_all_tex.py .
 
             # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync --config /root/.config/rclone/rclone.conf . \
