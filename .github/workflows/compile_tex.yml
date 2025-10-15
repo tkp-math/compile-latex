@@ -17,7 +17,7 @@ jobs:
 
       # 作業ディレクトリの確認
       - name: List workspace
-        run: ls -R /github/workspace
+        run: ls -R $GITHUB_WORKSPACE
 
       # ① rclone 用に secrets.RCLONE_CONFIG を設定
       - name: Setup rclone config
@@ -30,7 +30,9 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm -v ${{ github.workspace }}/.config/rclone:/root/.config/rclone
+          options: --rm \
+            -v ${{ github.workspace }}/.config/rclone:/root/.config/rclone \
+            -v ${{ github.workspace }}:/github/workspace  # ← リポジトリ全体をマウント
           run: |
             set -e  # エラーで停止
 
