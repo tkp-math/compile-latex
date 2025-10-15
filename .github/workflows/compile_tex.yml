@@ -36,7 +36,7 @@ jobs:
 
             # ③ Google Drive からフォルダを同期
             rclone sync --config /root/.config/rclone/rclone.conf \
-              "gdrive:${{ github.event.inputs.folderId }}" .
+              "googleDrive:${{ github.event.inputs.folderId }}" .
 
             # ④ Python 環境整備
             python3 -m pip install --upgrade pip
@@ -47,5 +47,5 @@ jobs:
 
             # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync --config /root/.config/rclone/rclone.conf . \
-              "gdrive:${{ github.event.inputs.folderId }}"
+              "googleDrive:${{ github.event.inputs.folderId }}"
           shell: sh
