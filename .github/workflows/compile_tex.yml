@@ -30,9 +30,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/tkp-math/texlive-ja:latest
-          options: --rm \
-            -v ${{ github.workspace }}/.config/rclone:/root/.config/rclone \
-            -v ${{ github.workspace }}:/github/workspace  # ← リポジトリ全体をマウント
+          options: --rm -v ${{ github.workspace }}/.config/rclone:/root/.config/rclone -v ${{ github.workspace }}:/github/workspace  # ← リポジトリ全体をマウント
           run: |
             set -e  # エラーで停止
 
