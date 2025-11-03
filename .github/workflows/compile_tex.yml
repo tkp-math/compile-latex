@@ -49,8 +49,9 @@ jobs:
             # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
             python3 /github/workspace/scripts/compile_all_tex.py .
 
-            # 生成物をホストへコピー
-            cp -r /workspace/latex_projects/*.pdf /workspace_host/ || true
+            # PDF数
+            PDF_COUNT=$(find . -name '*.pdf' | wc -l)
+            echo "PDF_COUNT=$PDF_COUNT" >> $GITHUB_ENV
 
             # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync --config /root/.config/rclone/rclone.conf . \
@@ -61,10 +62,11 @@ jobs:
       - name: Notify success via GAS
         if: success()
         run: |
-          PDF_COUNT=$(find "${{ github.workspace }}/drive_folder" -type f -name "*.pdf" | wc -l)
           curl -X POST -H "Content-Type: application/json" \
                -d "{\"token\": \"${{ secrets.GAS_SECRET_TOKEN }}\", \"status\": \"success\", \"repo\": \"${{ github.repository }}\", \"run_id\": \"${{ github.run_id }}\", \"pdf_count\": ${PDF_COUNT}, \"folder_url\": \"https://drive.google.com/drive/folders/${{ github.event.inputs.folderId }}\"}" \
                "${{ secrets.GAS_WEBHOOK_URL }}"
+        env: 
+          PDF_COUNT: ${{ env.PDF_COUNT }}
 
       # ❌ 失敗時通知
       - name: Notify failure via GAS
