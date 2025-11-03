@@ -49,6 +49,9 @@ jobs:
             # ⑤ 再帰的に .tex ファイルをコンパイル（uplatex + dvipdfmx）
             python3 /github/workspace/scripts/compile_all_tex.py .
 
+            # 生成物をホストへコピー
+            cp -r /workspace/latex_projects/*.pdf /workspace_host/ || true
+
             # ⑥ 完成した PDF を Google Drive にアップロード
             rclone sync --config /root/.config/rclone/rclone.conf . \
               --drive-root-folder-id "${{ github.event.inputs.folderId }}" googleDrive:
