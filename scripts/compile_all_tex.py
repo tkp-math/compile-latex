@@ -18,6 +18,8 @@ def compile_tex(tex_path: pathlib.Path):
     cwd_before = os.getcwd()
     os.chdir(tex_dir)
     log_path = tex_dir / f"{tex_path.stem}_compile.log"
+    # 親ディレクトリを作る（存在しない場合のみ）
+    log_path.parent.mkdir(parents=True, exist_ok=True)
 
     with log_path.open("w", encoding="utf-8") as f_log:
         try:
@@ -54,3 +56,4 @@ if __name__ == "__main__":
         print("Usage: python compile_all_tex.py <folder_path>")
     else:
         compile_all(sys.argv[1])
+
