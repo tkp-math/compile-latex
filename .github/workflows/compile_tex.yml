@@ -61,7 +61,7 @@ jobs:
       - name: Notify success via GAS
         if: success()
         run: |
-          PDF_COUNT=$(find /home/runner/work/compile-latex/compile-latex/latex_projects -type f -name "*.pdf" | wc -l)
+          PDF_COUNT=$(find "${{ github.workspace }}/drive_folder" -type f -name "*.pdf" | wc -l)
           curl -X POST -H "Content-Type: application/json" \
                -d "{\"token\": \"${{ secrets.GAS_SECRET_TOKEN }}\", \"status\": \"success\", \"repo\": \"${{ github.repository }}\", \"run_id\": \"${{ github.run_id }}\", \"pdf_count\": ${PDF_COUNT}, \"folder_url\": \"https://drive.google.com/drive/folders/${{ github.event.inputs.folderId }}\"}" \
                "${{ secrets.GAS_WEBHOOK_URL }}"
