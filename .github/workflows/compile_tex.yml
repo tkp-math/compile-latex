@@ -6,6 +6,12 @@ on:
       folderId:
         description: 'Google Drive folder ID'
         required: true
+      slack_channel:
+        description: 'Slack チャンネルID'
+        required: false
+      slack_mention_users:
+        description: 'Slack メンションユーザーIDのカンマ区切り'
+        required: false
 
 jobs:
   build:
@@ -65,11 +71,15 @@ jobs:
 
             # Slack / GAS へ通知
             curl -X POST -H "Content-Type: application/json" \
-                 -d "{\"token\": \"${{ secrets.GAS_SECRET_TOKEN }}\", \
-                      \"status\": \"$STATUS\", \
-                      \"repo\": \"${{ github.repository }}\", \
-                      \"run_id\": \"${{ github.run_id }}\", \
-                      \"pdf_count\": $PDF_COUNT, \
-                      \"folder_url\": \"https://drive.google.com/drive/folders/${{ github.event.inputs.folderId }}\"}" \
+                 -d "{
+                     \"token\": \"${{ secrets.GAS_SECRET_TOKEN }}\", 
+                     \"status\": \"success\", 
+                     \"repo\": \"${{ github.repository }}\", 
+                     \"run_id\": \"${{ github.run_id }}\", 
+                     \"pdf_count\": ${PDF_COUNT}, 
+                     \"folder_url\": \"https://drive.google.com/drive/folders/${{ github.event.inputs.folderId }}\",
+                     \"slack_channel\": \"${{ github.event.inputs.slack_channel }}\",
+                     \"mention_users\": \"${{ github.event.inputs.slack_mention_users }}\"
+                   }" \
                  "${{ secrets.GAS_WEBHOOK_URL }}"
           shell: sh
